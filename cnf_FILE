@@ -1,5 +1,5 @@
 /*cnf文件读取函数*/
-status ReadFile(SNode *ps, char filename[50])
+status ReadFile(SNode *ps, char filename[100])
 {
     char ch;
     FILE *fp = NULL;
@@ -28,8 +28,8 @@ status ReadFile(SNode *ps, char filename[50])
     fscanf(fp, "%d", &sen_num);
     printf("cnf文件中的文字数:%d    子句数:     %d\n", var_num, sen_num);
 
-    int flag_letter_1st = 1, flag_clause_1st = 1,flag_newC=1;
-    while (fscanf(fp, "%d", &buffer)!=EOF)
+    int flag_letter_1st = 1, flag_clause_1st = 1, flag_newC = 1;
+    while (fscanf(fp, "%d", &buffer) != EOF)
     {
         //读取文字,读取值非0时，生成文字结点
         if (buffer)
@@ -42,40 +42,40 @@ status ReadFile(SNode *ps, char filename[50])
         else
         {
             flag_letter_1st = 1;
-            flag_newC=1;
+            flag_newC = 1;
             pl->nextL = NULL;
             continue;
         }
         //在生成第一个子句时，让S与C建立联系
-        if (flag_newC&&flag_clause_1st)
+        if (flag_newC && flag_clause_1st)
         {
             pc_new = (CNode *)malloc(sizeof(CNode));
             pc_new->headnode.nextL = NULL;
             pc_new->letter_num = 0;
             pc_new->nextC = NULL;
-            ps->bignode.nextC=pc_new;
+            ps->bignode.nextC = pc_new;
             ps->clause_num = sen_num;
-            pc=ps->bignode.nextC;
+            pc = ps->bignode.nextC;
             flag_clause_1st = 0;
-            flag_newC=0;
+            flag_newC = 0;
         }
         //要生成非首子句
-        else if(flag_newC&&!flag_clause_1st)
+        else if (flag_newC && !flag_clause_1st)
         {
-            pc_new=(CNode*)malloc(sizeof(CNode));
-            pc_new->headnode.nextL=NULL;
-            pc_new->letter_num=0;
-            pc_new->nextC=NULL;
-            pc->nextC=pc_new;
-            pc=pc->nextC;
-            flag_newC=0;
+            pc_new = (CNode *)malloc(sizeof(CNode));
+            pc_new->headnode.nextL = NULL;
+            pc_new->letter_num = 0;
+            pc_new->nextC = NULL;
+            pc->nextC = pc_new;
+            pc = pc->nextC;
+            flag_newC = 0;
         }
         //在生成子句的首文字时建立C与L的联系
         if (flag_letter_1st)
         {
             pc->headnode.nextL = pl_new;
             pc->letter_num++;
-            pl=pc->headnode.nextL;
+            pl = pc->headnode.nextL;
             flag_letter_1st = 0;
         }
         //将生成的文字结点纳入字句，准备下一文字的生成
@@ -112,12 +112,12 @@ status Traverse(SNode S)
             pl = pl->nextL;
         }
         printf("\n");
-        pc=pc->nextC;
+        pc = pc->nextC;
     }
     return TRUE;
 }
 //cnf文件的保存
-status SaveCnfFile(SNode S,char filename[50])
+status SaveCnfFile(SNode S, char filename[100])
 {
 
     FILE *fp = NULL;
