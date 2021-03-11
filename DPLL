@@ -3,12 +3,12 @@ ElemType select_letter(SNode *ps)
 {
     int min = ps->bignode.nextC->letter_num;
     CNode *pc = NULL;
-    CNode *pct = ps->bignode.nextC;//t=traverse
+    CNode *pct = ps->bignode.nextC; //t=traverse
     while (pct)
     {
         if (min < pct->letter_num)
         {
-            pct=pct->nextC;
+            pct = pct->nextC;
             continue;
         }
         min = pct->letter_num;
@@ -37,7 +37,7 @@ status Del_CwithL(SNode *ps, ElemType data)
 {
     CNode *pc = &ps->bignode, *qc = pc->nextC;
     LNode *pl;
-    int flag = 0;//是否要删除当前子句的标志，1是0否
+    int flag = 0; //是否要删除当前子句的标志，1是0否
     while (qc)
     {
         pl = qc->headnode.nextL;
@@ -60,78 +60,114 @@ status Del_CwithL(SNode *ps, ElemType data)
             flag = 0;
         }
         pc = pc->nextC;
-        if(qc)//保证单子句被删除后，qc不用向下一指针位置移动
-        qc = qc->nextC;
+        if (qc) //保证单子句被删除后，qc不用向下一指针位置移动
+            qc = qc->nextC;
     }
     return TRUE;
 }
 
 //删除所有子句中的文字L
-status Del_LinC(SNode *ps,ElemType data)
+status Del_LinC(SNode *ps, ElemType data)
 {
-    CNode *pc=ps->bignode.nextC;
+    CNode *pc = ps->bignode.nextC;
     LNode *pl;
     LNode *ql;
     while (pc)
     {
-        pl=&pc->headnode;
-        ql=pl->nextL;
+        pl = &pc->headnode;
+        ql = pl->nextL;
         while (ql)
         {
-            if(ql->data==data)
+            if (ql->data == data)
             {
-                pl->nextL=ql->nextL;
+                pl->nextL = ql->nextL;
                 free(ql);
-                ql=pl->nextL;
+                ql = pl->nextL;
                 pc->letter_num--;
-                break;//不考虑重复文字
+                break; //不考虑重复文字
             }
-            pl=pl->nextL;
-            ql=ql->nextL;
+            pl = pl->nextL;
+            ql = ql->nextL;
         }
-        pc=pc->nextC;
+        pc = pc->nextC;
     }
     return TRUE;
 }
 //子句集S中含有空子句，返回1，否则返回0
 status Empty_Clause(SNode *ps)
 {
-    CNode *pc=ps->bignode.nextC;
+    CNode *pc = ps->bignode.nextC;
     while (pc)
     {
-        if(!pc->letter_num) 
-        return TRUE;
-        else pc=pc->nextC;
+        if (!pc->letter_num)
+            return TRUE;
+        else
+            pc = pc->nextC;
     }
     return FALSE;
 }
 //给出子句集S，若可满足，输出TRUE,否则输出FALSE
 //var非0时激活分支策略,flag为var的真值情况
-status DPLL(SNode *ps,SNode *ps_former,int var,int flag)
+status DPLL(SNode *ps, int var, int flag)
 {
     //分治策略,var非0激活分治策略
-    if(var&&flag)
+    if (var && flag)
     {
-        Del_CwithL(ps,var);
-        Del_LinC(ps,-var);
+        Del_CwithL(ps, var);
+        Del_LinC(ps, -var);
     }
-    else if(var&&!flag)
+    else if (var && !flag)
     {
-        Del_CwithL(ps,-var);
-        Del_LinC(ps,var);
+        Del_CwithL(ps, -var);
+        Del_LinC(ps, var);
     }
-    CNode *pct=NULL;
-    ElemType data=0;//保存单子句中的文字
+    CNode *pct = NULL;
+    ElemType data = 0; //保存单子句中的文字
     //单子句策略
-    while (pct=select_unitC(ps))
+    while (pct = select_unitC(ps))
     {
-        data=pct->headnode.nextL->data;
-        Del_CwithL(ps,data);
-        Del_LinC(ps,-data);
-        if(!ps->clause_num) return TRUE;
-        else if(Empty_Clause(ps)) return FALSE;
+        data = pct->headnode.nextL->data;
+        Del_CwithL(ps, data);
+        Del_LinC(ps, -data);
+        if (!ps->clause_num)
+            return TRUE;
+        else if (Empty_Clause(ps))
+            return FALSE;
     }
-    ElemType v=select_letter(ps);//文字取真
-    if(DPLL(ps,ps_former,v,0)) return TRUE;
-    else return DPLL(ps,ps_former,v,1);
+    ElemType v = select_letter(ps); //文字取真
+    SNode *ps_former = (SNode *)malloc(sizeof(SNode));
+    CopyList(ps, ps_former);
+    if (DPLL(ps, v, 0))
+        return TRUE;
+    else
+        return DPLL(ps_former, v, 1);
+}
+//将ps1所指的子句集复制给ps2
+status CopyList(SNode *ps1, SNode *ps2)
+{
+    CNode *pc1 = NULL, *pc2 = NULL;
+    LNode *pl1 = NULL, *pl2 = NULL;
+    ps2->clause_num = ps1->clause_num;
+    pc1 = &ps1->bignode;
+    pc2 = &ps2->bignode;
+    while (pc1->nextC)
+    {
+        pc1 = pc1->nextC;
+        pc2->nextC = (CNode *)malloc(sizeof(CNode));
+        pc2 = pc2->nextC;
+        pc2->nextC = NULL;
+        pc2->letter_num = pc1->letter_num;
+
+        pl1 = &pc1->headnode;
+        pl2 = &pc2->headnode;
+        while (pl1->nextL)
+        {
+            pl1 = pl1->nextL;
+            pl2->nextL = (LNode *)malloc(sizeof(LNode));
+            pl2 = pl2->nextL;
+            pl2->data = pl1->data;
+            pl2->nextL = NULL;
+        }
+    }
+    return 0;
 }
