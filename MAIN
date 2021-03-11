@@ -1,10 +1,11 @@
 int main()
 {
     FILE *fp = NULL;
-    char filename[50], filename_copy[50];
+    char filename[100], filename_copy[50];
     int op = 1, op_sat = 1;
     int in_or_not = 1;
     SNode S;
+    time_t start_t=0,end_t=0;
     S.clause_num = 0;
     S.bignode.headnode.nextL = NULL;
     S.bignode.headnode.data = 0;
@@ -64,18 +65,23 @@ int main()
                             break;
                         case 3:
                             printf("input target filename:");
-                            scanf("%s",filename);
-                            if(SaveCnfFile(S,filename)==TRUE)
-                            printf("cnf文件已保存!\n");
-                            else printf("cnf文件保存失败!\n");
+                            scanf("%s", filename);
+                            if (SaveCnfFile(S, filename) == TRUE)
+                                printf("cnf文件已保存!\n");
+                            else
+                                printf("cnf文件保存失败!\n");
                             getchar();
                             getchar();
                             break;
                         case 4:
                             printf("即将启动DPLL算法解决子句集S的SAT问题\n");
-                            if(DPLL(&S,&S,0,0))
-                            printf("子句集S代表的cnf公式可满足\n");
-                            else printf("子句集代表的cnf公式不可满足\n");
+                            start_t=clock();
+                            if (DPLL(&S, 0, 0))
+                                printf("子句集S代表的cnf公式可满足\n");
+                            else
+                                printf("子句集代表的cnf公式不可满足\n");
+                            end_t=clock();
+                            printf("所花费的时间time=%.5lfs\n",(end_t-start_t)*0.00432);
                             getchar();
                             getchar();
                             break;
@@ -85,4 +91,5 @@ int main()
             }
         }
     }
+    return 0;
 }
