@@ -6,3 +6,5 @@ based on DPLL algrithm to solve SAT problem
 
 UNDER CONSTRUCTION
 **建设中**
+
+2021/3/10 修改了部分DPLL算法的核心内容，并且加入了计时功能 
