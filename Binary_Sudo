@@ -1,0 +1,237 @@
+//新增子句添加函数
+status Add_Clause(SNode *ps, ElemType *data, int letter_num)
+{
+    if (!ps)
+        return FALSE;
+    CNode *pc_new = (CNode *)malloc(sizeof(CNode));
+    pc_new->headnode.nextL = NULL;
+    pc_new->letter_num = 0;
+    pc_new->nextC = NULL;
+    LNode *pl_new = NULL;
+    for (int i = 0; i < letter_num; i++)
+    {
+        pl_new = (LNode *)malloc(sizeof(LNode));
+        pl_new->data = data[i];
+        pl_new->nextL = pc_new->headnode.nextL;
+        pc_new->headnode.nextL = pl_new;
+        pc_new->letter_num++;
+    }
+    ps->clause_num++;
+    pc_new->nextC = ps->bignode.nextC;
+    ps->bignode.nextC = pc_new;
+    return TRUE;
+}
+//新增数独规约函数，将数独转化为子句集形式
+status Sudo_Transfer(int order)
+{
+    int count_row = 0, count_col = 0;
+    ElemType *data = NULL;
+    SNode *ps = (SNode *)malloc(sizeof(SNode));
+    ps->clause_num = 0;
+    CNode *pc = &ps->bignode, *pc_new = NULL;
+    pc->letter_num = 0;
+    pc->nextC = NULL;
+    pc->headnode.nextL = NULL;
+    pc->headnode.data = -2;
+    //文字序号与行列值的转化函数 abs(var)=(count_row-1)*col+count_col(注释中的行列的序号从1开始)
+    //规则1
+    data = (int *)malloc(3 * sizeof(int));
+    for (count_row = 0; count_row < order - 2; count_row++)
+    {
+        for (count_col = 0; count_col < 3; count_col++)
+        {
+            data[0] = count_row * order + count_col + 1; //代表(count_row,count_col)对应的文字序号
+            data[1] = data[0] + 1;
+            data[2] = data[0] + 2;
+            Add_Clause(ps, data, 3);
+        }
+    }
+    for (count_col = 0; count_col < order - 2; count_col++)
+    {
+        for (count_row = 0; count_row < 3; count_row++)
+        {
+            data[0] = count_row * order + count_col + 1; //代表(count_row,count_col)对应的文字序号
+            data[1] = data[0] + order;
+            data[2] = data[0] + 2 * order;
+            Add_Clause(ps, data, 3);
+        }
+    }
+    //规则2
+    int *combine = (int *)malloc(order * sizeof(int));
+    int *target = (int *)malloc(order * sizeof(int));
+    for (count_row = 0; count_row < order; count_row++)
+    {
+        //设定combine数组的起始状态
+        for (count_col = 0; count_col < order / 2 + 1; count_col++)
+            combine[count_col] = 1;
+        for (; count_col < order; count_col++)
+            combine[count_col] = 0;
+        //设定target数组的内容
+        for (count_col = 0; count_col < order; count_col++)
+            target[count_col] = count_row * order + count_col + 1;
+        while(Unique_Combine(combine, target, data, order, order / 2 + 1))
+        Add_Clause(ps,data,order / 2 + 1);        
+    }
+    for (count_col = 0; count_col < order; count_col++)
+    {
+        //设定combine数组的起始状态
+        for (count_row = 0; count_row < order / 2 + 1; count_row++)
+            combine[count_row] = 1;
+        for (; count_row < order; count_row++)
+            combine[count_row] = 0;
+        //设定target数组的内容
+        for (count_row = 0; count_row < order; count_row++)
+        target[count_row] = count_row * order + count_col + 1;
+        while(Unique_Combine(combine,target,data,order,order/2+1))
+        Add_Clause(ps,data,order / 2 + 1);
+    }
+    //规则3
+    int var1,var2;
+    int extra_var_true[order],extra_var_false[order];
+    int extra_var_same[order];
+    //基准行
+    for (int base_line = 0; base_line < order; base_line++)
+    {
+        //比较行
+        for (int cmp_line = count_row+1; cmp_line < order; cmp_line++)
+        {
+            //每一列
+            for ( count_col = 0; count_col < order; count_col++)
+            {
+                var1=10*base_line+count_col;//51
+                var2=10*cmp_line+count_col;//71
+                extra_var_true[count_col]=10000+1000*base_line+100*cmp_line+10*count_col+1;//15711
+                extra_var_true[count_col]=10000+1000*base_line+100*cmp_line+10*count_col+0;//15710
+                extra_var_same[count_col]=1000+100*base_line+10*cmp_line+count_col;//1571
+
+                //15711= 51∧71 转化为 CNF 时为（51 ∨ ¬15711）∧（71 ∨ ¬15711）∧（¬51 ∨ ¬71 ∨ 15711）
+                fprintf(fp,"%d %d 0\n",var1,-extra_var_true[count_col]);
+                fprintf(fp,"%d %d 0\n",var2,-extra_var_true[count_col]);
+                fprintf(fp,"%d %d %d 0\n",-var1,-var2,extra_var_true[count_col]);
+
+                //15720= ¬52∧¬72 转化为 CNF 时为（¬52 ∨ ¬15720）∧（¬72 ∨ ¬15720）∧（52 ∨ 72 ∨ 15720）
+                fprintf(fp,"%d %d 0\n",-var1,-extra_var_false[count_col]);
+                fprintf(fp,"%d %d 0\n",-var2,-extra_var_false[count_col]);
+                fprintf(fp,"%d %d %d 0\n",var1,var2,extra_var_false[count_col]);
+
+                //1578= 15781 ∨ 15780 转化为 CNF 时为（¬15781 ∨ 1578）∧（¬15780 ∨ 1578）∧（15781 ∨ 15780 ∨ ¬1578）
+                fprintf(fp,"%d %d 0\n",-extra_var_true[count_col],extra_var_same[count_col]);
+                fprintf(fp,"%d %d 0\n",-extra_var_false[count_col],extra_var_same[count_col]);
+                fprintf(fp,"%d %d %d 0\n",extra_var_true[count_col],extra_var_false[count_col],-extra_var_same[count_col]);
+
+                int var3=100+10*base_line+cmp_line//157
+                //157= ¬[1571∧1572∧…∧1578] 转化为 CNF 时为（¬157∨¬1571∨¬1572∨…∨¬1578）∧（1571∨157）∧（1572∨157）…（1578∨157）
+                for (int count = 0; count < order; count++)
+                fprintf(fp,"%d ",-extra_var_same[count]);
+                fprintf(fp,"%d 0\n",-var3);
+                for(int count=0;count<order;count++)
+                fprintf(fp,"%d %d 0\n",extra_var_same[count],var3);
+            }
+            
+        }
+    }
+    
+    return TRUE;
+}
+//新增从n个元素中选取m个元素的全组合函数(10转换法)
+//函数功能是把combine对应的target数组中的内容压缩到data数组中，并通过改变10组合产生一种新的不重复的组合
+//combine数组中改变过10状态返回1，否则返回0,使用前需要将target数组中m个1推给target数组靠左的位置,以设定启动状态
+int Unique_Combine(int *combine, int *target, int *data, int target_num, int data_num)
+{
+    //flag用来判定是否更替过10组合
+    int count=0,flag=0,num1_num=0;
+    data=(int*)malloc(data_num*sizeof(int));
+    //读入当前组合到data中
+    for ( int i=0; count < target_num; count++)
+    {
+        if(combine[count])
+        {
+            data[i]=target[count];
+            i++;
+        }
+    }
+    //通过改变第一个10组合更新combine
+    for ( count = 0; count < target_num-1; count++)
+    {
+        //检索第一个10组合
+        if(combine[count]&&!combine[count+1])
+        {
+            //将10变成01
+            combine[count]=0;
+            combine[count+1]=1;
+            //统计01组合左侧1的个数
+            for (int i = 0; i < count-1; i++)
+                if(combine[i]) num1_num++;
+            //移动所有左边的1到最左侧
+            for (int i = 0; i < num1_num; i++)
+            combine[i]=1;
+            for(int i=num1_num;i<count-1;i++)
+            combine[i]=0;
+            flag=1;
+            break;
+        }
+        flag=0;
+    }
+    return flag;
+}
+//新增数独题目选择函数
+void choose_puzzle(int truth_table[])
+{
+    char *dif = NULL;
+    char string[10];
+    int choice;
+    int op;
+
+    //选择难度
+    printf("\nSelect the difficulty!\n");
+    printf("1.easy    2.medium    3.hard\n");
+    scanf("%d", &op);
+    switch (op)
+    {
+    case 1:
+        dif = "easy";
+        break;
+    case 2:
+        dif = "medium";
+        break;
+    case 3:
+        dif = "hard";
+        break;
+    }
+
+    //选择题号
+    printf("\nPlease choose the puzzle(1-10):\n");
+    scanf("%d", &choice);
+
+    FILE *fp;
+    fp = fopen("puzzles.txt", "r");
+
+    //找到题目
+    while (1)
+    {
+        fscanf(fp, "%s", string);
+        if (strcmp(string, dif) == 0) //读到对应难度退出循环
+            break;
+    }
+    while (1)
+    {
+        fscanf(fp, "%d", &op);
+        if (op == choice) //读到对应题号退出循环
+            break;
+    }
+
+    //题目写入内存
+    int var = 0;
+    while (TRUE)
+    {
+        fscanf(fp, "%d", &var);
+        if (var == 0)
+        {
+            break;
+        }
+        if(var>0)
+        truth_table[abs(var)]=1;
+        else truth_table[abs(var)]=0;
+    }
+    fclose(fp);
+}
