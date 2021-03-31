@@ -86,9 +86,10 @@ status ReadFile(SNode *ps, char filename[100])
             pc->letter_num++;
         }
     }
-    pc->nextC = NULL;
+    check_clausenum(ps);
     return TRUE;
 }
+
 
 //cnf文件的公式解析
 status Traverse(SNode S)
@@ -169,4 +170,18 @@ status Release_Link(SNode *ps)
     }
     ps->clause_num = 0;
     return TRUE;
+}
+//新增check函数，检查子句集的子句数是否正确
+void check_clausenum(SNode *ps)
+{
+    int count = 0;
+    CNode *pc = NULL;
+    pc = S.bignode.nextC;
+    //双层循环读取子句集
+    while (pc)
+    {
+        count++;
+        pc = pc->nextC;
+    }
+    ps->clause_num = count;
 }
