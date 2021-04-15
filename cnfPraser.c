@@ -1,11 +1,11 @@
 #include "head.h"
 /*cnf文件读取函数*/
-status ReadFile(SNode *ps, char filename[100])
+status ReadFile(SNode* ps, char filename[100])
 {
     char ch;
-    FILE *fp = NULL;
-    CNode *pc, *pc_new;
-    LNode *pl, *pl_new;
+    FILE* fp = NULL;
+    CNode* pc=NULL, * pc_new=NULL;
+    LNode* pl=NULL, * pl_new=NULL;
     int buffer = 0;
     if (((fp = fopen(filename, "r")) == NULL))
     {
@@ -24,7 +24,7 @@ status ReadFile(SNode *ps, char filename[100])
     }
     for (int i = 0; i < 5; i++)
         fread(&ch, sizeof(char), 1, fp);
-    fscanf(fp, "%d", &var_num);
+    fscanf(fp, "%d", &var_num,10);
     fscanf(fp, "%d", &sen_num);
 
     int flag_letter_1st = 1, flag_clause_1st = 1, flag_newC = 1;
@@ -33,7 +33,7 @@ status ReadFile(SNode *ps, char filename[100])
         //读取文字,读取值非0时，生成文字结点
         if (buffer)
         {
-            pl_new = (LNode *)malloc(sizeof(LNode));
+            pl_new = (LNode*)malloc(sizeof(LNode));
             pl_new->data = buffer;
             pl_new->nextL = NULL;
         }
@@ -48,7 +48,7 @@ status ReadFile(SNode *ps, char filename[100])
         //在生成第一个子句时，让S与C建立联系
         if (flag_newC && flag_clause_1st)
         {
-            pc_new = (CNode *)malloc(sizeof(CNode));
+            pc_new = (CNode*)malloc(sizeof(CNode));
             pc_new->headnode.nextL = NULL;
             pc_new->letternum = 0;
             pc_new->nextC = NULL;
@@ -61,7 +61,7 @@ status ReadFile(SNode *ps, char filename[100])
         //要生成非首子句
         else if (flag_newC && !flag_clause_1st)
         {
-            pc_new = (CNode *)malloc(sizeof(CNode));
+            pc_new = (CNode*)malloc(sizeof(CNode));
             pc_new->headnode.nextL = NULL;
             pc_new->letternum = 0;
             pc_new->nextC = NULL;
@@ -93,8 +93,8 @@ status ReadFile(SNode *ps, char filename[100])
 //cnf文件的公式解析
 status Traverse(SNode S)
 {
-    CNode *pc = NULL;
-    LNode *pl = NULL;
+    CNode* pc = NULL;
+    LNode* pl = NULL;
     if (!S.clausenum)
     {
         printf("子句集为空!\n");
@@ -120,10 +120,10 @@ status Traverse(SNode S)
 status SaveCnfFile(SNode S)
 {
 
-    FILE *fp = NULL;
-    CNode *pc = NULL;
-    LNode *pl = NULL;
-    if (((fp = fopen("D:\\tst.txt", "wb")) == NULL))
+    FILE* fp = NULL;
+    CNode* pc = NULL;
+    LNode* pl = NULL;
+    if (((fp = fopen("tst.txt", "wb")) == NULL))
     {
         printf("File open error!\n");
         return FALSE;
@@ -151,10 +151,10 @@ status SaveCnfFile(SNode S)
 }
 
 //释放链表空间
-status ReleaseLink(SNode *ps)
+status ReleaseLink(SNode* ps)
 {
-    CNode *pc;
-    LNode *pl;
+    CNode* pc;
+    LNode* pl;
     while (ps->bignode.nextC)
     {
         pc = ps->bignode.nextC;
@@ -171,10 +171,10 @@ status ReleaseLink(SNode *ps)
     return TRUE;
 }
 //新增check函数，检查子句集的子句数是否正确
-void CheckClausenum(SNode *ps)
+void CheckClausenum(SNode* ps)
 {
     int count = 0;
-    CNode *pc = NULL;
+    CNode* pc = NULL;
     pc = ps->bignode.nextC;
     //双层循环读取子句集
     while (pc)
@@ -183,27 +183,27 @@ void CheckClausenum(SNode *ps)
         pc = pc->nextC;
     }
     ps->clausenum = count;
-}status SaveSolution(int flag,int truthtable[],clock_t cost)
+}status SaveSolution(int flag, int truthtable[], clock_t cost)
 {
-    FILE *fp=NULL;
-    if((fp=fopen("D:\\solution.txt","w"))==NULL)
+    FILE* fp = NULL;
+    if ((fp = fopen("solution.txt", "w")) == NULL)
     {
         printf("File Open Erorr!\n");
         return FALSE;
     }
-    fprintf(fp,"s %d\n",flag);
-    if(flag)
+    fprintf(fp, "s %d\n", flag);
+    if (flag)
     {
-    fprintf(fp,"v ");
-    for (int count = 0; count < var_num; count++)
-    {
-        if(truthtable[count]>0)
-        fprintf(fp,"%d ",count+1);
-        else
-        fprintf(fp,"%d ",-(count+1));
+        fprintf(fp, "v ");
+        for (int count = 0; count < var_num; count++)
+        {
+            if (truthtable[count] > 0)
+                fprintf(fp, "%d ", count + 1);
+            else
+                fprintf(fp, "%d ", -(count + 1));
+        }
     }
-    }
-    fprintf(fp,"\nt %ldms\n",cost);
+    fprintf(fp, "\nt %ldms\n", cost);
     fclose(fp);
     return TRUE;
 }
