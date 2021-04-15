@@ -1,5 +1,14 @@
 #include "head.h"
-/*cnf文件读取函数*/
+/**
+文件名:cnfPraser
+功能:cnf文件解析器
+*/
+/*************************************************************
+函数名称:ReadFile
+函数功能:读取CNF文件
+输入的参数:目的子句集变量的指针ps和读取的文件名filename
+返回值:是否读取成功，1为成功，0为失败
+**************************************************************/
 status ReadFile(SNode* ps, char filename[100])
 {
     char ch;
@@ -90,7 +99,12 @@ status ReadFile(SNode* ps, char filename[100])
     return TRUE;
 }
 
-//cnf文件的公式解析
+/*************************************************************
+函数名称:Traverse
+函数功能:遍历子句集的内部结构
+输入的参数:子句集结点S
+返回值:遍历是否成功，1为成功，0为失败
+**************************************************************/
 status Traverse(SNode S)
 {
     CNode* pc = NULL;
@@ -116,7 +130,12 @@ status Traverse(SNode S)
     }
     return TRUE;
 }
-//cnf文件的保存
+/*************************************************************
+函数名称:SavaCnfFile
+函数功能:将子句集S保存为Cnf文件，默认保存至相对路径下的tst.txt（测试功能）
+输入的参数:子句集结点S
+返回值:是否保存成功，1为成功，0为失败
+**************************************************************/
 status SaveCnfFile(SNode S)
 {
 
@@ -150,7 +169,12 @@ status SaveCnfFile(SNode S)
     }
 }
 
-//释放链表空间
+/*************************************************************
+函数名称:ReleaseLink
+函数功能:摧毁子句集
+输入的参数:指向子句集结点的指针ps
+返回值:时否摧毁成功，1为成功，0为失败
+**************************************************************/
 status ReleaseLink(SNode* ps)
 {
     CNode* pc;
@@ -170,7 +194,12 @@ status ReleaseLink(SNode* ps)
     ps->clausenum = 0;
     return TRUE;
 }
-//新增check函数，检查子句集的子句数是否正确
+/*************************************************************
+函数名称:CheckClausenum
+函数功能:辅助函数，帮助子句集检查字句个数的正确与否
+输入的参数:指向子句集结点的指针ps
+返回值:无
+**************************************************************/
 void CheckClausenum(SNode* ps)
 {
     int count = 0;
@@ -183,27 +212,5 @@ void CheckClausenum(SNode* ps)
         pc = pc->nextC;
     }
     ps->clausenum = count;
-}status SaveSolution(int flag, int truthtable[], clock_t cost)
-{
-    FILE* fp = NULL;
-    if ((fp = fopen("solution.txt", "w")) == NULL)
-    {
-        printf("File Open Erorr!\n");
-        return FALSE;
-    }
-    fprintf(fp, "s %d\n", flag);
-    if (flag)
-    {
-        fprintf(fp, "v ");
-        for (int count = 0; count < var_num; count++)
-        {
-            if (truthtable[count] > 0)
-                fprintf(fp, "%d ", count + 1);
-            else
-                fprintf(fp, "%d ", -(count + 1));
-        }
-    }
-    fprintf(fp, "\nt %ldms\n", cost);
-    fclose(fp);
-    return TRUE;
 }
+
