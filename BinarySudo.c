@@ -2,11 +2,11 @@
 //新增数独规约函数，将数独转化为子句集形式，并保存为cnf文件,文件名需要输入
 status SudoTransfer(int order)
 {
-    FILE *fp = NULL;
+    FILE* fp = NULL;
     int count_row = 0, count_col = 0;
-    ElemType *data = NULL;
+    ElemType* data = NULL;
     char filename[50];
-    strcpy(filename,"D:\\tst.txt");
+    strcpy(filename, "tst.txt");
     fp = fopen(filename, "w");
     var_num = order * order;
     sen_num = 0;
@@ -32,8 +32,8 @@ status SudoTransfer(int order)
         }
     }
     //规则2
-    int *combine = (int *)malloc(order * sizeof(int));
-    int *target = (int *)malloc(order * sizeof(int));
+    int* combine = (int*)malloc(order * sizeof(int));
+    int* target = (int*)malloc(order * sizeof(int));
     for (count_row = 0; count_row < order; count_row++)
     {
         //设定combine数组的起始状态
@@ -44,7 +44,7 @@ status SudoTransfer(int order)
         //设定target数组的内容
         for (count_col = 0; count_col < order; count_col++)
             target[count_col] = order * count_row + count_col + 1; //ij
-        data = (int *)malloc((order / 2 + 1) * sizeof(int));
+        data = (int*)malloc((order / 2 + 1) * sizeof(int));
         while (UniqueCombine(combine, target, data, order))
         {
             for (int count = 0; count < order / 2 + 1; count++)
@@ -81,7 +81,7 @@ status SudoTransfer(int order)
         //设定target数组的内容
         for (count_row = 0; count_row < order; count_row++)
             target[count_row] = count_row * order + count_col + 1;
-        data = (int *)malloc((order / 2 + 1) * sizeof(int));
+        data = (int*)malloc((order / 2 + 1) * sizeof(int));
         while (UniqueCombine(combine, target, data, order))
         {
             for (int count = 0; count < order / 2 + 1; count++)
@@ -211,7 +211,7 @@ status SudoTransfer(int order)
 //新增从n个元素中选取m个元素的全组合函数(10转换法)
 //函数功能是把combine对应的target数组中的内容压缩到data数组中，并通过改变10组合产生一种新的不重复的组合
 //combine数组中改变过10状态返回1，否则返回0,使用前需要将target数组中m个1推给target数组靠左的位置,以设定启动状态
-int UniqueCombine(int *combine, int *target, int *data, int target_num)
+int UniqueCombine(int* combine, int* target, int* data, int target_num)
 {
     //flag用来判定是否更替过10组合
     int count = 0, num1_num = 0;
@@ -277,8 +277,8 @@ void ChoosePuzzle(int truthtable[])
     printf("\nPlease choose the puzzle(1-10):\n");
     scanf("%d", &choice);
 
-    FILE *fp;
-    fp = fopen("D:\\VSCODE\\puzzles.txt", "r");
+    FILE* fp;
+    fp = fopen("puzzles.txt", "r");
     if (!fp)
     {
         printf("File open error!\n");
@@ -321,7 +321,7 @@ void ChoosePuzzle(int truthtable[])
     fclose(fp);
 }
 
-status ShowPuzzle(int sudo_table[6][6],int order)
+status ShowPuzzle(int sudo_table[6][6], int order)
 {
     //打印数独
     for (int count_row = 0; count_row < order; count_row++)
@@ -340,15 +340,15 @@ status ShowPuzzle(int sudo_table[6][6],int order)
     return 0;
 }
 //当数独填充完成，即无未标记状态时，返回1
-status IfCompleted(int sudo_table[6][6],int order)
+status IfCompleted(int sudo_table[6][6], int order)
 {
     for (int i = 0; i < order; i++)
     {
         for (int j = 0; j < order; j++)
         {
-            if(sudo_table[i][j]==-1)
-            return 0;
+            if (sudo_table[i][j] == -1)
+                return 0;
         }
     }
-    return 1; 
+    return 1;
 }
