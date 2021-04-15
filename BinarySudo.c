@@ -1,16 +1,16 @@
-status Sudo_Transfer(int order)
+#include "head.h"
+//新增数独规约函数，将数独转化为子句集形式，并保存为cnf文件,文件名需要输入
+status SudoTransfer(int order)
 {
     FILE *fp = NULL;
     int count_row = 0, count_col = 0;
     ElemType *data = NULL;
     char filename[50];
-
-    printf("input the sudo filename :");
-    scanf("%s", filename);
+    strcpy(filename,"D:\\tst.txt");
     fp = fopen(filename, "w");
     var_num = order * order;
     sen_num = 0;
-    fprintf(fp, "p cnf \n");
+    fprintf(fp, "p cnf 30000 30000\n");
     for (count_row = 0; count_row < order; count_row++)
     {
         for (count_col = 0; count_col < order - 2; count_col++)
@@ -45,20 +45,30 @@ status Sudo_Transfer(int order)
         for (count_col = 0; count_col < order; count_col++)
             target[count_col] = order * count_row + count_col + 1; //ij
         data = (int *)malloc((order / 2 + 1) * sizeof(int));
-        while (Unique_Combine(combine, target, data, order))
+        while (UniqueCombine(combine, target, data, order))
         {
             for (int count = 0; count < order / 2 + 1; count++)
             {
                 fprintf(fp, "%d ", data[count]);
             }
-            fprintf(fp, "0\n");
+            fprintf(fp, "0 \n");
+            for (int count = 0; count < order / 2 + 1; count++)
+            {
+                fprintf(fp, "%d ", -data[count]);
+            }
+            fprintf(fp, "0 \n");
             sen_num++;
         }
         for (int count = 0; count < order / 2 + 1; count++)
         {
             fprintf(fp, "%d ", data[count]);
         }
-        fprintf(fp, "0\n");
+        fprintf(fp, "0 \n");
+        for (int count = 0; count < order / 2 + 1; count++)
+        {
+            fprintf(fp, "%d ", -data[count]);
+        }
+        fprintf(fp, "0 \n");
         sen_num++;
     }
     for (count_col = 0; count_col < order; count_col++)
@@ -72,13 +82,18 @@ status Sudo_Transfer(int order)
         for (count_row = 0; count_row < order; count_row++)
             target[count_row] = count_row * order + count_col + 1;
         data = (int *)malloc((order / 2 + 1) * sizeof(int));
-        while (Unique_Combine(combine, target, data, order))
+        while (UniqueCombine(combine, target, data, order))
         {
             for (int count = 0; count < order / 2 + 1; count++)
             {
                 fprintf(fp, "%d ", data[count]);
             }
-            fprintf(fp, "0\n");
+            fprintf(fp, "0 \n");
+            for (int count = 0; count < order / 2 + 1; count++)
+            {
+                fprintf(fp, "%d ", -data[count]);
+            }
+            fprintf(fp, "0 \n");
             sen_num++;
         }
         //曾经漏掉了这一个，因为跳出循环的条件是没用10组合，但是最后一组data这时还储存在数组里面，要打印出来
@@ -86,12 +101,17 @@ status Sudo_Transfer(int order)
         {
             fprintf(fp, "%d ", data[count]);
         }
-        fprintf(fp, "0\n");
+        fprintf(fp, "0 \n");
+        for (int count = 0; count < order / 2 + 1; count++)
+        {
+            fprintf(fp, "%d ", -data[count]);
+        }
+        fprintf(fp, "0 \n");
     }
     //规则3
     int var1, var2;
-    int extra_var_true[order], extra_var_false[order];
-    int extra_var_same[order];
+    int extra_var_true[6], extra_var_false[6];
+    int extra_var_same[6];
     //基准行
     for (int base_line = 0; base_line < order; base_line++)
     {
@@ -108,19 +128,19 @@ status Sudo_Transfer(int order)
                 extra_var_same[count_col] = 1000 + 100 * base_line + 10 * cmp_line + count_col;              //1571
                 var_num += 3;
                 //15711= 51∧71 转化为 CNF 时为（51 ∨ -15711）∧（71 ∨ -15711）∧（-51 ∨ -71 ∨ 15711）
-                fprintf(fp, "%d %d 0\n", var1, -extra_var_true[count_col]);
-                fprintf(fp, "%d %d 0\n", var2, -extra_var_true[count_col]);
-                fprintf(fp, "%d %d %d 0\n", -var1, -var2, extra_var_true[count_col]);
+                fprintf(fp, "%d %d 0 \n", -extra_var_true[count_col], var1);
+                fprintf(fp, "%d %d 0 \n", -extra_var_true[count_col], var2);
+                fprintf(fp, "%d %d %d 0 \n", extra_var_true[count_col], -var1, -var2);
                 sen_num += 3;
                 //15720= -52∧-72 转化为 CNF 时为（-52 ∨ -15720）∧（-72 ∨ -15720）∧（52 ∨ 72 ∨ 15720）
-                fprintf(fp, "%d %d 0\n", -var1, -extra_var_false[count_col]);
-                fprintf(fp, "%d %d 0\n", -var2, -extra_var_false[count_col]);
-                fprintf(fp, "%d %d %d 0\n", var1, var2, extra_var_false[count_col]);
+                fprintf(fp, "%d %d 0 \n", -extra_var_false[count_col], -var1);
+                fprintf(fp, "%d %d 0 \n", -extra_var_false[count_col], -var2);
+                fprintf(fp, "%d %d %d 0 \n", extra_var_false[count_col], var1, var2);
                 sen_num += 3;
                 //1578= 15781 ∨ 15780 转化为 CNF 时为（-15781 ∨ 1578）∧（-15780 ∨ 1578）∧（15781 ∨ 15780 ∨ -1578）
-                fprintf(fp, "%d %d 0\n", -extra_var_true[count_col], extra_var_same[count_col]);
-                fprintf(fp, "%d %d 0\n", -extra_var_false[count_col], extra_var_same[count_col]);
-                fprintf(fp, "%d %d %d 0\n", extra_var_true[count_col], extra_var_false[count_col], -extra_var_same[count_col]);
+                fprintf(fp, "%d %d 0 \n", -extra_var_true[count_col], extra_var_same[count_col]);
+                fprintf(fp, "%d %d 0 \n", -extra_var_false[count_col], extra_var_same[count_col]);
+                fprintf(fp, "%d %d %d 0 \n", extra_var_true[count_col], extra_var_false[count_col], -extra_var_same[count_col]);
                 sen_num += 3;
             }
             int var3 = 100 + 10 * base_line + cmp_line; //157
@@ -128,11 +148,11 @@ status Sudo_Transfer(int order)
             //157= -[1571∧1572∧…∧1578] 转化为 CNF 时为（-157∨-1571∨-1572∨…∨-1578）∧（1571∨157）∧（1572∨157）…（1578∨157）
             for (int count = 0; count < order; count++)
                 fprintf(fp, "%d ", -extra_var_same[count]);
-            fprintf(fp, "%d 0\n", -var3);
+            fprintf(fp, "%d 0 \n", -var3);
             sen_num++;
             for (int count = 0; count < order; count++)
             {
-                fprintf(fp, "%d %d 0\n", extra_var_same[count], var3);
+                fprintf(fp, "%d %d 0 \n", extra_var_same[count], var3);
                 sen_num++;
             }
         }
@@ -154,19 +174,19 @@ status Sudo_Transfer(int order)
                 extra_var_same[count_row] = 2000 + 100 * base_col + 10 * cmp_col + count_row;              //2571
                 var_num += 3;
                 //25711= 15∧17 转化为 CNF 时为（15 ∨ -25711）∧（17 ∨ -25711）∧（-15 ∨ -17 ∨ 25711）
-                fprintf(fp, "%d %d 0\n", var1, -extra_var_true[count_row]);
-                fprintf(fp, "%d %d 0\n", var2, -extra_var_true[count_row]);
-                fprintf(fp, "%d %d %d 0\n", -var1, -var2, extra_var_true[count_row]);
+                fprintf(fp, "%d %d 0 \n", -extra_var_true[count_row], var1);
+                fprintf(fp, "%d %d 0 \n", -extra_var_true[count_row], var2);
+                fprintf(fp, "%d %d %d 0 \n", extra_var_true[count_row], -var1, -var2);
                 sen_num += 3;
                 //25720= -25∧-27 转化为 CNF 时为（-25 ∨ -25720）∧（-27 ∨ -20-9  5720）∧（25 ∨ 27 ∨ 25720）
-                fprintf(fp, "%d %d 0\n", -var1, -extra_var_false[count_row]);
-                fprintf(fp, "%d %d 0\n", -var2, -extra_var_false[count_row]);
-                fprintf(fp, "%d %d %d 0\n", var1, var2, extra_var_false[count_row]);
+                fprintf(fp, "%d %d 0 \n", -extra_var_false[count_row], -var1);
+                fprintf(fp, "%d %d 0 \n", -extra_var_false[count_row], -var2);
+                fprintf(fp, "%d %d %d 0 \n", extra_var_false[count_row], var1, var2);
                 sen_num += 3;
                 //2578= 25781 ∨ 25780 转化为 CNF 时为（-25781 ∨ 2578）∧（-25780 ∨ 2578）∧（25781 ∨ 25780 ∨ -2578）
-                fprintf(fp, "%d %d 0\n", -extra_var_true[count_row], extra_var_same[count_row]);
-                fprintf(fp, "%d %d 0\n", -extra_var_false[count_row], extra_var_same[count_row]);
-                fprintf(fp, "%d %d %d 0\n", extra_var_true[count_row], extra_var_false[count_row], -extra_var_same[count_row]);
+                fprintf(fp, "%d %d 0 \n", -extra_var_true[count_row], extra_var_same[count_row]);
+                fprintf(fp, "%d %d 0 \n", -extra_var_false[count_row], extra_var_same[count_row]);
+                fprintf(fp, "%d %d %d 0 \n", extra_var_true[count_row], extra_var_false[count_row], -extra_var_same[count_row]);
                 sen_num += 3;
             }
             int var3 = 200 + 10 * base_col + cmp_col; //257
@@ -174,19 +194,16 @@ status Sudo_Transfer(int order)
             //257= -[2571∧2572∧…∧2578] 转化为 CNF 时为（-257∨-2571∨-2572∨…∨-2578）∧（2571∨257）∧（2572∨257）…（2578∨257）
             for (int count = 0; count < order; count++)
                 fprintf(fp, "%d ", -extra_var_same[count]);
-            fprintf(fp, "%d 0\n", -var3);
+            fprintf(fp, "%d 0 \n", -var3);
             sen_num++;
             for (int count = 0; count < order; count++)
             {
-                fprintf(fp, "%d %d 0\n", extra_var_same[count], var3);
+                fprintf(fp, "%d %d 0 \n", extra_var_same[count], var3);
                 sen_num++;
             }
         }
     }
     strcpy(target_filename, filename);
-    fseek(fp, 0, SEEK_SET);
-    fprintf(fp, "p cnf %d %d\n", var_num, sen_num);
-
     fclose(fp);
     return TRUE;
 }
@@ -194,7 +211,7 @@ status Sudo_Transfer(int order)
 //新增从n个元素中选取m个元素的全组合函数(10转换法)
 //函数功能是把combine对应的target数组中的内容压缩到data数组中，并通过改变10组合产生一种新的不重复的组合
 //combine数组中改变过10状态返回1，否则返回0,使用前需要将target数组中m个1推给target数组靠左的位置,以设定启动状态
-int Unique_Combine(int *combine, int *target, int *data, int target_num)
+int UniqueCombine(int *combine, int *target, int *data, int target_num)
 {
     //flag用来判定是否更替过10组合
     int count = 0, num1_num = 0;
@@ -232,7 +249,7 @@ int Unique_Combine(int *combine, int *target, int *data, int target_num)
 }
 //新增数独题目选择函数
 //输入真值表数组，按输入读取对应的puzzle，将前置条件替换
-void choose_puzzle(int truth_table[])
+void ChoosePuzzle(int truthtable[])
 {
     char dif[10];
     char string[10];
@@ -291,9 +308,47 @@ void choose_puzzle(int truth_table[])
             break;
         }
         if (var > 0)
-            truth_table[(var % 10 + (var / 10 - 1) * 6) - 1] = 1;
+        {
+            int v = (var / 10 - 1) * 6 + var % 10;
+            Assert(v, 1, truthtable);
+        }
         else
-            truth_table[(-var % 10 + (-var / 10 - 1) * 6) - 1] = 0;
+        {
+            int v = (abs(var) / 10 - 1) * 6 + abs(var) % 10;
+            Assert(v, 0, truthtable);
+        }
     }
     fclose(fp);
+}
+
+status ShowPuzzle(int sudo_table[6][6],int order)
+{
+    //打印数独
+    for (int count_row = 0; count_row < order; count_row++)
+    {
+        for (int i = 0; i < order; i++)
+            printf("---");
+        printf("\n");
+        for (int count_col = 0; count_col < order; count_col++)
+        {
+            printf("|%2d", sudo_table[count_row][count_col]);
+        }
+        printf("|\n");
+    }
+    for (int i = 0; i < order; i++)
+        printf("---");
+    return 0;
+}
+//当数独填充完成，即无未标记状态时，返回1
+status IfCompleted(int sudo_table[6][6],int order)
+{
+    for (int i = 0; i < order; i++)
+    {
+        for (int j = 0; j < order; j++)
+        {
+            if(sudo_table[i][j]==-1)
+            return 0;
+        }
+    }
+    return 1; 
 }
