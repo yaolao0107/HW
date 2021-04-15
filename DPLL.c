@@ -1,5 +1,15 @@
 #include "head.h"
-/*输入子句集S，按照MOM策略选择子句集中一个文字，并且输出文字的data值*/
+/**
+文件名:DPLL
+功能:SAT求解器
+*/
+
+/*************************************************************
+函数名称:SelectLetter
+函数功能:分支策略中基于MOM选择一个特殊的变元
+输入的参数:指向子句集结点的指针ps
+返回值:最短子句中的一个文字
+**************************************************************/
 ElemType SelectLetter(SNode* ps)
 {
     int min = ps->bignode.nextC->letternum;
@@ -18,13 +28,23 @@ ElemType SelectLetter(SNode* ps)
     }                                //寻找最短子句（一个）
     return pc->headnode.nextL->data; //选最短子句的一个文字
 }
-
+/*************************************************************
+函数名称:SelectLetter_og
+函数功能:分支策略中基于随机选择选择一个特殊的变元
+输入的参数:指向子句集结点的指针ps
+返回值:某一个1-var_num之间的文字
+**************************************************************/
 ElemType SelectLetter_og(SNode* ps)
 {
     ElemType var = rand() % var_num + 1;
     return var;
 }
-//选择一个单子句,选中后返回指向单子句的指针pct，否则返回NULL
+/*************************************************************
+函数名称:SelectUnitC
+函数功能:查找并返回一个子句集中的单子句
+输入的参数:指向子句集结点的指针ps
+返回值:若找到则返回单子句的地址，否则返回NULL
+**************************************************************/
 CNode* SelectUnitC(SNode* ps)
 {
     CNode* pc = ps->bignode.nextC;
@@ -38,8 +58,12 @@ CNode* SelectUnitC(SNode* ps)
     return NULL;
 }
 
-//删除含文字L的所有子句
-//ps为子句集，data为要删除的文字
+/*************************************************************
+函数名称:Del_CwithL
+函数功能:删除所有含有文字L的子句C
+输入的参数:指向子句集结点的指针ps，文字data
+返回值:无意义
+**************************************************************/
 status Del_CwithL(SNode* ps, ElemType data)
 {
     CNode* pc = &ps->bignode, * qc = ps->bignode.nextC; //pc指向子句集的头节点，qc指向首子句
@@ -77,7 +101,12 @@ status Del_CwithL(SNode* ps, ElemType data)
     return TRUE;
 }
 
-//删除所有子句中的文字L
+/*************************************************************
+函数名称:Del_LinC
+函数功能:删除所有子句中的文字L
+输入的参数:指向子句集结点的指针ps，文字data
+返回值:无意义
+**************************************************************/
 status Del_LinC(SNode* ps, ElemType data)
 {
     CNode* pc = ps->bignode.nextC;
@@ -104,7 +133,12 @@ status Del_LinC(SNode* ps, ElemType data)
     }
     return TRUE;
 }
-//子句集S中含有空子句，返回1，否则返回0
+/*************************************************************
+函数名称:IfEmptyClause
+函数功能:判断子句集中是否含有空子句
+输入的参数:指向子句集结点的指针ps
+返回值:若有空子句，返回TRUE，否则返回FALSE
+**************************************************************/
 status IfEmptyClause(SNode* ps)
 {
     CNode* pc = ps->bignode.nextC;
@@ -117,8 +151,12 @@ status IfEmptyClause(SNode* ps)
     }
     return FALSE;
 }
-//给出子句集S，若可满足，输出TRUE,否则输出FALSE
-//var非0时激活分支策略,flag为var的真值情况
+/*************************************************************
+函数名称:DPLL
+函数功能:SAT问题的求解器
+输入的参数:指向子句集结点的指针ps，分支策略选择的文字var和值，真值表truthtable
+返回值:若SAT可满足，返回TRUE，否则返回FALSE
+**************************************************************/
 status DPLL(SNode* ps, int var, int flag, int truthtable[])
 {
     //分治策略,var非0激活分治策略
@@ -162,7 +200,12 @@ status DPLL(SNode* ps, int var, int flag, int truthtable[])
     else
         return FALSE;
 }
-
+/*************************************************************
+函数名称:DPLL_og
+函数功能:SAT问题的求解器(使用select_og分支策略)
+输入的参数:指向子句集结点的指针ps，分支策略选择的文字var和值，真值表truthtable
+返回值:若SAT可满足，返回TRUE，否则返回FALSE
+**************************************************************/
 status DPLL_og(SNode* ps, int var, int flag, int truthtable[])
 {
     //分治策略,var非0激活分治策略
@@ -206,7 +249,12 @@ status DPLL_og(SNode* ps, int var, int flag, int truthtable[])
     else
         return FALSE;
 }
-//将ps1所指的子句集复制给ps2
+/*************************************************************
+函数名称:CopyList
+函数功能:复制一个子句集
+输入的参数:指向子句集结点的指针ps1，和待生成子句集指针ps2
+返回值:无意义
+**************************************************************/
 status CopyList(SNode* ps1, SNode* ps2)
 {
     CNode* pc1 = NULL, * pc2 = NULL;
@@ -235,7 +283,12 @@ status CopyList(SNode* ps1, SNode* ps2)
     }
     return 0;
 }
-//新增赋值函数，文字var的真假值为flag，将其保存到真值表truthtable中去
+/*************************************************************
+函数名称:Assert
+函数功能:对文字进行赋值
+输入的参数文字var和值flag，真值表truthtable
+返回值:若文字为0,则返回FALSE
+**************************************************************/
 status Assert(int var, int flag, int truthtable[])
 {
     if (!var)
@@ -245,12 +298,47 @@ status Assert(int var, int flag, int truthtable[])
     else
         truthtable[abs(var) - 1] = !flag;
 }
-//新增打印函数，打印真值表
+/*************************************************************
+函数名称:TraverseTruthtable
+函数功能:SAT问题求解结果的输出
+输入的参数:真值表truthtable
+返回值:无意义
+**************************************************************/
 status TraverseTruthtable(int truthtable[])
 {
     printf("---------------输出真值表的内容--------------\n\n");
     printf("注:1->真    2->假   -1->真或者假\n\n");
     for (int i = 0; i < var_num; i++)
         printf("文字%4d:%4d\n", i + 1, truthtable[i]);
+    return TRUE;
+}
+/*************************************************************
+函数名称:SaveSolution
+函数功能:保存SAT问题的解
+输入的参数:求解成功的标志flag，真值表truthtable和时间开销cost
+返回值:无意义
+**************************************************************/
+status SaveSolution(int flag, int truthtable[], clock_t cost)
+{
+    FILE* fp = NULL;
+    if ((fp = fopen("solution.txt", "w")) == NULL)
+    {
+        printf("File Open Erorr!\n");
+        return FALSE;
+    }
+    fprintf(fp, "s %d\n", flag);
+    if (flag)
+    {
+        fprintf(fp, "v ");
+        for (int count = 0; count < var_num; count++)
+        {
+            if (truthtable[count] > 0)
+                fprintf(fp, "%d ", count + 1);
+            else
+                fprintf(fp, "%d ", -(count + 1));
+        }
+    }
+    fprintf(fp, "\nt %ldms\n", cost);
+    fclose(fp);
     return TRUE;
 }
