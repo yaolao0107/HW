@@ -1,4 +1,8 @@
 #include"head.h"
+/**
+文件名:main
+功能:系统显示
+*/
 int var_num = 0, sen_num = 0;
 char target_filename[50];
 int* truthtable = NULL;
